@@ -5,6 +5,7 @@ import json
 import re
 import os
 import execjs
+import traceback
 # import http.cookiejar as cj
 
 print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
@@ -56,12 +57,27 @@ def submit():
     print(output.text)
     return output
 
+def push_notices(text, desp=''):
+    serverchan_url = 'https://sc.ftqq.com/'
+    serverchan_key = os.environ["SERVERCHAN_KEY"]
+    post_url = serverchan_url + serverchan_key + '.send'
+    postdata = {'text': text, 'desp': desp}
+    requests.get(post_url, postdata)
+
 code = 500
 if __name__ == "__main__":
-    while code != 200:
-        output = submit()
-        code = json.loads(output.text)["code"]
-    print("您已成功提交健康信息！")
+    try:
+        while code != 200:
+            output = submit()
+            code = json.loads(output.text)["code"]
+    except BaseException as e:
+        msg = traceback.format_exc()
+        print(msg)
+        print("健康信息提交失败！")
+        push_notices('健康信息提交失败！', msg)
+    else:
+        print("您已成功提交健康信息！")
+        push_notices("您已成功提交健康信息！")
     
 
 
